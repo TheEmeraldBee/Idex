@@ -1,0 +1,13 @@
+[package]
+name = "idex"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.89"
+ascii-forge = "0.2.13"
+crokey = "1.1.0"
+crossterm = { version = "0.28.1", features = ["serde"] }
+serde = "1.0.210"
+serde_derive = "1.0.210"
+toml = "0.8.19"
