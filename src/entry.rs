@@ -91,9 +91,9 @@ impl Entry {
                     .unwrap_or(config.folder.clone());
 
                 if selected {
-                    render!(buffer, pos => [ "  ".repeat(self.depth - 1), " > ", style, self.file_name.clone().blue(), "/ <" ]);
+                    render!(buffer, pos => [ config.tab.text.repeat(self.depth - 1).with(config.tab.color), " > ", style, self.file_name.clone().blue(), "/ <" ]);
                 } else {
-                    render!(buffer, pos => [ "  ".repeat(self.depth), style, self.file_name.clone().blue(), "/"]);
+                    render!(buffer, pos => [ config.tab.text.repeat(self.depth).with(config.tab.color), style, self.file_name.clone().blue(), "/"]);
                 }
             }
             EntryType::File => {
@@ -107,9 +107,9 @@ impl Entry {
                 };
 
                 if selected {
-                    render!(buffer, pos => [ "  ".repeat(self.depth - 1), " > ", style, self.file_name, " <" ]);
+                    render!(buffer, pos => [ config.tab.text.repeat(self.depth - 1).with(config.tab.color), " > ", style, self.file_name, " <" ]);
                 } else {
-                    render!(buffer, pos => [ "  ".repeat(self.depth), style, self.file_name ]);
+                    render!(buffer, pos => [ config.tab.text.repeat(self.depth).with(config.tab.color), style, self.file_name ]);
                 }
             }
         }
