@@ -50,15 +50,15 @@ impl Ord for Entry {
 impl Entry {
     pub fn new(entry: DirEntry, depth: usize) -> Self {
         let data = entry.metadata().unwrap();
+        let path = entry.path().canonicalize().unwrap();
         Self {
             depth,
             expanded: false,
-            path: entry.path(),
-            suffix: entry
-                .path()
+            suffix: path
                 .extension()
                 .map(|x| x.to_str().unwrap().to_string())
                 .unwrap_or("".to_string()),
+            path,
             file_name: entry.file_name().into_string().unwrap(),
             entry_type: match data.is_dir() {
                 true => EntryType::Dir,
@@ -84,14 +84,28 @@ impl Entry {
     pub fn render(&self, pos: Vec2, buffer: &mut Buffer, selected: bool, config: &Config) {
         match self.entry_type {
             EntryType::Dir => {
+                let style = config
+                    .styles
+                    .get(&self.file_name.to_lowercase())
+                    .cloned()
+                    .unwrap_or(config.folder.clone());
+
                 if selected {
-                    render!(buffer, pos => [ "  ".repeat(self.depth - 1), " > ", config.folder, self.file_name.clone().blue(), "/ <" ]);
+                    render!(buffer, pos => [ "  ".repeat(self.depth - 1), " > ", style, self.file_name.clone().blue(), "/ <" ]);
                 } else {
-                    render!(buffer, pos => [ "  ".repeat(self.depth), config.folder, self.file_name.clone().blue(), "/"]);
+                    render!(buffer, pos => [ "  ".repeat(self.depth), style, self.file_name.clone().blue(), "/"]);
                 }
             }
             EntryType::File => {
-                let style = config.files.get(&self.suffix).cloned().unwrap_or_default();
+                let style = match config.styles.get(&self.file_name.to_lowercase()).cloned() {
+                    Some(t) => t,
+                    None => config
+                        .styles
+                        .get(&self.suffix.to_lowercase())
+                        .cloned()
+                        .unwrap_or_default(),
+                };
+
                 if selected {
                     render!(buffer, pos => [ "  ".repeat(self.depth - 1), " > ", style, self.file_name, " <" ]);
                 } else {

@@ -1,0 +1,48 @@
+[double_click.sh]
+command = "open"
+args = [
+  "$FOCUSED"
+]
+
+[bindings.Enter.sh]
+command = "open"
+args = [
+  "$FOCUSED"
+]
+
+[bindings.q]
+quit = {}
+
+[bindings.Up]
+move = -1
+[bindings.Down]
+move = 1
+
+[bindings.Right]
+expand = {}
+[bindings.Left]
+collapse = {}
+
+[bindings.']']
+scroll = 1
+[bindings.'[']
+scroll = -1
+
+[folder]
+icon = ""
+color = "blue"
+
+[style]
+"toml" = { icon = "" }
+"conf" = { icon = "" }
+"md" = { icon = "" }
+".gitignore" = { icon = "" }
+"makefile" = { icon = "" }
+"rs" = { icon = "", color = "red" }
+"lock" = { icon = "", color = "red" }
+"py" = { icon = "", color = "red" }
+"go" = { icon = "", color = "red" }
+
+# Special Folders
+".git" = { icon = "", color = "blue" }
+".github" = { icon = "", color = "blue" }
