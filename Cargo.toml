@@ -2,6 +2,10 @@
 name = "idex"
 version = "0.1.0"
 edition = "2021"
+description = "An IDE like terminal project file explorer"
+license = "MIT"
+repository = "https://github.com/TheEmeraldBee/Idex"
+authors = ["TheEmeraldBee"]
 
 [dependencies]
 anyhow = "1.0.89"
