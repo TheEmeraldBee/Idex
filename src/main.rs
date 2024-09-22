@@ -128,8 +128,8 @@ fn main() -> anyhow::Result<()> {
             }
         }
 
-        // Render window and log-string to the screen.
-        render!(window, vec2(0, 0) => [ explorer ], vec2(0, window.size().y - 5) => [ log_string ]);
+        // Render window, border, and log-string to the screen.
+        render!(window, vec2(0, 0) => [ explorer ], vec2(0, window.size().y - 6) => [ "-".repeat(window.size().x as usize) ], vec2(0, window.size().y - 5) => [ log_string ]);
 
         // Update the window over a long duration
         window.update(Duration::from_secs(10))?;

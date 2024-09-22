@@ -155,7 +155,7 @@ impl<'a> Explorer<'a> {
 impl<'a> Render for Explorer<'a> {
     fn render(&self, mut loc: Vec2, buffer: &mut Buffer) -> Vec2 {
         let start_line = self.scroll;
-        let max_lines = (start_line + buffer.size().y as usize - 5).min(self.entries.len());
+        let max_lines = (start_line + buffer.size().y as usize - 6).min(self.entries.len());
 
         render!(buffer, loc => [ "./" ]);
 
