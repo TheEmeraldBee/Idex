@@ -51,7 +51,7 @@ fn main() -> anyhow::Result<()> {
     // The main exploring loop
     loop {
         // Re-read the file system for new changes.
-        explorer = explorer.refresh()?;
+        explorer.refresh()?;
 
         // If control-c is pressed, quit the program. (reserved command)
         if event!(window, Event::Key(k) => *k == KeyEvent::new(KeyCode::Char('c'), KeyModifiers::CONTROL))
@@ -77,7 +77,9 @@ fn main() -> anyhow::Result<()> {
                         explorer.set_selected(idx - 1);
 
                         // If We just double clilcked
-                        if last_click.is_double(&click_data, &config) {
+                        if last_click.is_double(&click_data, &config)
+                            && explorer.selection_valid(idx - 1)
+                        {
                             if explorer.is_file() {
                                 // If file double clicked, run configured command.
 
@@ -129,7 +131,14 @@ fn main() -> anyhow::Result<()> {
         }
 
         // Render window, border, and log-string to the screen.
-        render!(window, vec2(0, 0) => [ explorer ], vec2(0, window.size().y - 6) => [ "-".repeat(window.size().x as usize) ], vec2(0, window.size().y - 5) => [ log_string ]);
+        render!(window,
+            vec2(0, 0) => [ explorer ],
+            vec2(0, window.size().y - 6) =>
+            [
+                "Log ", "─".repeat(window.size().x as usize - 4)
+            ],
+            vec2(0, window.size().y - 5) => [ log_string ]
+        );
 
         // Update the window over a long duration
         window.update(Duration::from_secs(10))?;

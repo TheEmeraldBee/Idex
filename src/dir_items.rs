@@ -7,5 +7,6 @@ pub fn dir_items(path: &Path, depth: usize) -> anyhow::Result<Vec<Entry>> {
     for entry in path.read_dir()? {
         entries.push(Entry::new(entry?, depth))
     }
+    entries.sort();
     Ok(entries)
 }

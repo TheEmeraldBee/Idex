@@ -28,11 +28,16 @@ impl<'a> Explorer<'a> {
         })
     }
 
-    pub fn set_selected(&mut self, idx: usize) {
-        let idx = self.scroll + idx;
-        if idx >= self.entries.len() {
+    pub fn selection_valid(&mut self, mut idx: usize) -> bool {
+        idx += self.scroll;
+        idx < self.entries.len()
+    }
+
+    pub fn set_selected(&mut self, mut idx: usize) {
+        if !self.selection_valid(idx) {
             return;
         }
+        idx += self.scroll;
 
         self.selected = idx;
     }
@@ -135,20 +140,47 @@ impl<'a> Explorer<'a> {
         }
     }
 
-    pub fn focused_path(&self) -> PathBuf {
-        self.entries[self.selected].entry.path()
+    pub fn find(&self, path: &Path) -> Option<usize> {
+        self.entries
+            .iter()
+            .enumerate()
+            .find(|x| x.1.path == path)
+            .map(|x| x.0)
     }
 
-    pub fn refresh(self) -> anyhow::Result<Self> {
-        let mut new = Explorer::new(&self.path, self.config)?;
-        for (i, entry) in self.entries.into_iter().enumerate() {
-            if entry.expanded {
-                new.set_selected(i);
-                new.expand()?;
+    pub fn focused_path(&self) -> PathBuf {
+        self.entries[self.selected].path.clone()
+    }
+
+    pub fn refresh(&mut self) -> anyhow::Result<()> {
+        let selected_path = self.entries[self.selected].path.clone();
+        let scroll = self.scroll;
+
+        let entries = self.entries.clone();
+        let expanded = entries
+            .into_iter()
+            .filter(|x| x.expanded)
+            .map(|x| x.path)
+            .collect::<Vec<PathBuf>>();
+
+        *self = Self::new(&self.path, self.config)?;
+
+        for item in &expanded {
+            if let Some(idx) = self.find(item) {
+                self.set_selected(idx);
+                self.expand()?;
             }
         }
-        new.selected = self.selected;
-        Ok(new)
+
+        match self.find(&selected_path) {
+            Some(i) => {
+                self.set_selected(i);
+                self.scroll = scroll
+            }
+            None => self.set_selected(0),
+        }
+
+        Ok(())
     }
 }
 
