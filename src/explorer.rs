@@ -89,6 +89,9 @@ impl<'a> Explorer<'a> {
         } else {
             self.selected -= dist;
         }
+        if self.selected < self.scroll {
+            self.scroll = self.selected;
+        }
     }
 
     pub fn advance(&mut self, dist: usize) {
@@ -187,7 +190,7 @@ impl<'a> Explorer<'a> {
 impl<'a> Render for Explorer<'a> {
     fn render(&self, mut loc: Vec2, buffer: &mut Buffer) -> Vec2 {
         let start_line = self.scroll;
-        let max_lines = (start_line + buffer.size().y as usize - 6).min(self.entries.len());
+        let max_lines = (start_line + buffer.size().y as usize - 7).min(self.entries.len());
 
         render!(buffer, loc => [ "./" ]);
 

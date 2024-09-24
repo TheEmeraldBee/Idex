@@ -2,6 +2,7 @@ use std::{collections::HashMap, fs::File, io::Read, path::PathBuf, str::FromStr}
 
 use crokey::KeyCombination;
 use crossterm::style::Color;
+use globset::Glob;
 use serde::{Deserialize, Serialize};
 
 use crate::{events::ExplorerEvent, style::Style};
@@ -36,7 +37,8 @@ pub struct Config {
 
     pub folder: Style,
     #[serde(rename = "style")]
-    pub styles: HashMap<String, Style>,
+    #[serde(with = "tuple_vec_map")]
+    pub styles: Vec<(Glob, Style)>,
 }
 
 impl Default for Config {
@@ -47,7 +49,7 @@ impl Default for Config {
             bindings: HashMap::new(),
             double_click: None,
             folder: Style::default(),
-            styles: HashMap::new(),
+            styles: vec![],
         }
     }
 }
@@ -71,5 +73,14 @@ impl Config {
         }
 
         Ok(toml::from_str(&config_text)?)
+    }
+
+    pub fn find_match(&self, name: &str) -> Option<Style> {
+        for (glob, style) in &self.styles {
+            if glob.compile_matcher().is_match(name) {
+                return Some(style.clone());
+            }
+        }
+        None
     }
 }

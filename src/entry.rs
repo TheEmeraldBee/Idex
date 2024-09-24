@@ -18,7 +18,6 @@ pub struct Entry {
     // Entry Data
     pub path: PathBuf,
     pub file_name: String,
-    pub suffix: String,
 
     pub entry_type: EntryType,
 }
@@ -54,10 +53,6 @@ impl Entry {
         Self {
             depth,
             expanded: false,
-            suffix: path
-                .extension()
-                .map(|x| x.to_str().unwrap().to_string())
-                .unwrap_or("".to_string()),
             path,
             file_name: entry.file_name().into_string().unwrap(),
             entry_type: match data.is_dir() {
@@ -84,11 +79,7 @@ impl Entry {
     pub fn render(&self, pos: Vec2, buffer: &mut Buffer, selected: bool, config: &Config) {
         match self.entry_type {
             EntryType::Dir => {
-                let style = config
-                    .styles
-                    .get(&self.file_name.to_lowercase())
-                    .cloned()
-                    .unwrap_or(config.folder.clone());
+                let style = config.find_match(&self.file_name).unwrap_or_default();
 
                 if selected {
                     render!(buffer, pos => [ config.tab.text.repeat(self.depth - 1).with(config.tab.color), " > ", style, self.file_name.clone().blue(), "/ <" ]);
@@ -97,14 +88,7 @@ impl Entry {
                 }
             }
             EntryType::File => {
-                let style = match config.styles.get(&self.file_name.to_lowercase()).cloned() {
-                    Some(t) => t,
-                    None => config
-                        .styles
-                        .get(&self.suffix.to_lowercase())
-                        .cloned()
-                        .unwrap_or_default(),
-                };
+                let style = config.find_match(&self.file_name).unwrap_or_default();
 
                 if selected {
                     render!(buffer, pos => [ config.tab.text.repeat(self.depth - 1).with(config.tab.color), " > ", style, self.file_name, " <" ]);

@@ -33,16 +33,22 @@ icon = ""
 color = "blue"
 
 [style]
-"toml" = { icon = "" }
-"conf" = { icon = "" }
-"md" = { icon = "" }
+# Misc
+"*.toml" = { icon = "" }
+"*.conf" = { icon = "" }
+"*.md" = { icon = "" }
+"*.lock" = { icon = "", color = "red" }
+
+# Programming Languages
+"*.rs" = { icon = "", color = "red" }
+"*.py" = { icon = "", color = "red" }
+"*.go" = { icon = "", color = "red" }
+"*.java" = { icon = "", color = "red" }
+
+# Special
 ".gitignore" = { icon = "" }
 "makefile" = { icon = "" }
-"rs" = { icon = "", color = "red" }
-"lock" = { icon = "", color = "red" }
-"py" = { icon = "", color = "red" }
-"go" = { icon = "", color = "red" }
-
-# Special Folders
 ".git" = { icon = "", color = "blue" }
 ".github" = { icon = "", color = "blue" }
+"readme.md" = { icon = "", color = "red" }
+".env" = {icon = ""}

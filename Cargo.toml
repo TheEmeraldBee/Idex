@@ -13,7 +13,9 @@ ascii-forge = "0.2.13"
 crokey = "1.1.0"
 crossterm = { version = "0.28.1", features = ["serde"] }
 dirs = "5.0.1"
+globset = { version = "0.4.15", features = ["serde", "serde1"] }
 serde = "1.0.210"
+serde-tuple-vec-map = "1.0.1"
 serde_derive = "1.0.210"
 shellexpand = "3.1.0"
 toml = "0.8.19"
