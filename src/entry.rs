@@ -79,21 +79,23 @@ impl Entry {
     pub fn render(&self, pos: Vec2, buffer: &mut Buffer, selected: bool, config: &Config) {
         match self.entry_type {
             EntryType::Dir => {
-                let style = config.find_match(&self.file_name).unwrap_or_default();
+                let style = config
+                    .find_match(&self.file_name)
+                    .unwrap_or(config.folder.clone());
 
                 if selected {
-                    render!(buffer, pos => [ config.tab.text.repeat(self.depth - 1).with(config.tab.color), " > ", style, self.file_name.clone().blue(), "/ <" ]);
+                    render!(buffer, pos => [ config.tab.text.repeat(self.depth - 1).with(config.tab.color), " > ", style, style.style(self.file_name.clone()), "/ <" ]);
                 } else {
-                    render!(buffer, pos => [ config.tab.text.repeat(self.depth).with(config.tab.color), style, self.file_name.clone().blue(), "/"]);
+                    render!(buffer, pos => [ config.tab.text.repeat(self.depth).with(config.tab.color), style, style.style(self.file_name.clone()), "/"]);
                 }
             }
             EntryType::File => {
                 let style = config.find_match(&self.file_name).unwrap_or_default();
 
                 if selected {
-                    render!(buffer, pos => [ config.tab.text.repeat(self.depth - 1).with(config.tab.color), " > ", style, self.file_name, " <" ]);
+                    render!(buffer, pos => [ config.tab.text.repeat(self.depth - 1).with(config.tab.color), " > ", style, style.style(self.file_name.clone()), " <" ]);
                 } else {
-                    render!(buffer, pos => [ config.tab.text.repeat(self.depth).with(config.tab.color), style, self.file_name ]);
+                    render!(buffer, pos => [ config.tab.text.repeat(self.depth).with(config.tab.color), style, style.style(self.file_name.clone()) ]);
                 }
             }
         }

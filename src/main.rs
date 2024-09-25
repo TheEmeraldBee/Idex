@@ -1,11 +1,16 @@
-use std::{env::args, time::Duration};
+use std::{
+    env::{args, current_dir},
+    time::Duration,
+};
 
 use ascii_forge::prelude::*;
 use click_data::ClickData;
 use config::Config;
+use confirmation::Confirmation;
 use crokey::Combiner;
 use events::ExplorerEvent;
 use explorer::Explorer;
+use input::{Input, InputEvent};
 use sh::handle_sh;
 
 mod dir_items;
@@ -21,7 +26,13 @@ mod click_data;
 
 mod sh;
 
+mod confirmation;
+mod input;
+
 fn main() -> anyhow::Result<()> {
+    let mut input = Input::new();
+    let mut confirmation = Confirmation::new();
+
     let mut last_click = ClickData::default();
 
     // Create the command combiner, and try to enable kitty keyboard protocol
@@ -33,7 +44,7 @@ fn main() -> anyhow::Result<()> {
         .collect::<Vec<String>>()
         .get(1)
         .cloned()
-        .unwrap_or(".".to_string());
+        .unwrap_or(current_dir()?.into_os_string().into_string().unwrap());
 
     // Initialize the window and have the window handle panics automatically
     let mut window = Window::init()?;
@@ -86,8 +97,18 @@ fn main() -> anyhow::Result<()> {
                                 if let Some(event) = config.double_click.clone() {
                                     match event {
                                         ExplorerEvent::Quit => return Ok(()),
-                                        ExplorerEvent::Sh { command, args } => {
-                                            handle_sh(&explorer, command, args, &mut log_string)
+                                        ExplorerEvent::Sh { command, args } => handle_sh(
+                                            &explorer,
+                                            command,
+                                            args,
+                                            &mut log_string,
+                                            None,
+                                        ),
+                                        ExplorerEvent::Input { event } => {
+                                            input.set_event(*event);
+                                        }
+                                        ExplorerEvent::Confirmation { event } => {
+                                            confirmation.set(*event);
                                         }
                                         _ => explorer.handle_event(event)?,
                                     }
@@ -113,14 +134,80 @@ fn main() -> anyhow::Result<()> {
                     }
                 }
                 Event::Key(k) => {
+                    if let Some(e) = input.event(*k) {
+                        match e {
+                            InputEvent::Cancel => {
+                                input.set_active(false);
+                                input.clear();
+                            }
+                            InputEvent::Accept => {
+                                let text = input.text();
+                                if let Some(event) = input.take_event() {
+                                    match event {
+                                        ExplorerEvent::Quit => return Ok(()),
+                                        ExplorerEvent::Sh { command, args } => handle_sh(
+                                            &explorer,
+                                            command,
+                                            args,
+                                            &mut log_string,
+                                            Some(text),
+                                        ),
+                                        ExplorerEvent::Input { event } => {
+                                            input.set_event(*event);
+                                            input.set_active(true);
+                                        }
+                                        ExplorerEvent::Confirmation { event } => {
+                                            confirmation.set(*event);
+                                        }
+
+                                        _ => explorer.handle_event(event.clone())?,
+                                    }
+                                }
+                                input.set_active(false);
+                            }
+                        }
+                    }
+                    if input.active() {
+                        continue;
+                    }
+
+                    if confirmation.active() {
+                        let event = confirmation.take().expect("Confirmation should be Some");
+                        if confirmation.handle(*k) {
+                            match event {
+                                ExplorerEvent::Quit => return Ok(()),
+                                ExplorerEvent::Sh { command, args } => {
+                                    handle_sh(&explorer, command, args, &mut log_string, None)
+                                }
+                                ExplorerEvent::Input { event } => {
+                                    input.set_event(*event);
+                                    input.set_active(true);
+                                }
+                                ExplorerEvent::Confirmation { event } => {
+                                    confirmation.set(*event);
+                                }
+
+                                _ => explorer.handle_event(event.clone())?,
+                            }
+                        }
+                        continue;
+                    }
                     // Find the keybind pressed, and run the binding that is pressed, if a configuration is written.
                     if let Some(key_combo) = combiner.transform(*k) {
                         if let Some(event) = config.bindings.get(&key_combo) {
                             match event.clone() {
                                 ExplorerEvent::Quit => return Ok(()),
                                 ExplorerEvent::Sh { command, args } => {
-                                    handle_sh(&explorer, command, args, &mut log_string)
+                                    handle_sh(&explorer, command, args, &mut log_string, None)
                                 }
+                                ExplorerEvent::Input { event } => {
+                                    input.set_event(*event);
+                                    input.set_active(true);
+                                }
+                                ExplorerEvent::Confirmation { event } => {
+                                    confirmation.set(*event);
+                                }
+
                                 _ => explorer.handle_event(event.clone())?,
                             }
                         }
@@ -129,16 +216,37 @@ fn main() -> anyhow::Result<()> {
                 _ => {}
             }
         }
-
         // Render window, border, and log-string to the screen.
         render!(window,
             vec2(0, 0) => [ explorer ],
-            vec2(0, window.size().y - 6) =>
-            [
-                "Log ", "─".repeat(window.size().x as usize - 4)
-            ],
-            vec2(0, window.size().y - 5) => [ log_string ]
         );
+        if confirmation.active() {
+            render!( window,
+                vec2(0, window.size().y - 6) =>
+                [
+                    "Are you sure? ( ", "y".green(), " / ", "n".red(), " )?"
+                ]
+            );
+        } else if input.active() {
+            render!( window,
+                vec2(0, window.size().y - 6) =>
+                [
+                    "INPUT ".red(), "─".repeat(window.size().x as usize - 6).red()
+                ],
+                vec2(0, window.size().y - 5) =>
+                [
+                    ">>> ".red(), input.get_text()
+                ],
+            );
+        } else {
+            render!( window,
+                vec2(0, window.size().y - 6) =>
+                [
+                    "Log ", "─".repeat(window.size().x as usize - 4)
+                ],
+                vec2(0, window.size().y - 5) => [ log_string ]
+            );
+        }
 
         // Update the window over a long duration
         window.update(Duration::from_secs(10))?;

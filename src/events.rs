@@ -10,4 +10,7 @@ pub enum ExplorerEvent {
     Quit,
 
     Sh { command: String, args: Vec<String> },
+
+    Input { event: Box<ExplorerEvent> },
+    Confirmation { event: Box<ExplorerEvent> },
 }

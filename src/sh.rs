@@ -7,6 +7,7 @@ pub fn handle_sh(
     command: String,
     mut args: Vec<String>,
     log_string: &mut String,
+    input: Option<String>,
 ) {
     args.iter_mut().for_each(|x| {
         *x = shellexpand::full_with_context_no_errors(
@@ -20,6 +21,7 @@ pub fn handle_sh(
                         .into_string()
                         .unwrap(),
                 ),
+                "INPUT" => input.clone(),
                 _ => None,
             },
         )

@@ -77,7 +77,7 @@ impl Config {
 
     pub fn find_match(&self, name: &str) -> Option<Style> {
         for (glob, style) in &self.styles {
-            if glob.compile_matcher().is_match(name) {
+            if glob.compile_matcher().is_match(name.to_lowercase()) {
                 return Some(style.clone());
             }
         }

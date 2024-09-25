@@ -31,6 +31,7 @@ scroll = -1
 [folder]
 icon = ""
 color = "blue"
+text_color = "blue"
 
 [style]
 # Misc
